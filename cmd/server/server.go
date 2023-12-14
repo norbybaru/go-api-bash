@@ -1,8 +1,9 @@
 package server
 
 import (
-	"dancing-pony/internal/config"
-	"dancing-pony/internal/database"
+	"dancing-pony/internal/app/dish"
+	"dancing-pony/internal/platform/config"
+	"dancing-pony/internal/platform/database"
 	"log"
 	"os"
 
@@ -10,33 +11,40 @@ import (
 )
 
 type App struct {
-	fiber *fiber.App
-	db    *database.DB
+	Fiber *fiber.App
+	Store *database.DB
 }
 
 func NewApp() *App {
 	config.BootstrapConfig()
-	app := fiber.New()
+	fiber := fiber.New()
 	dbConnection := database.Init(config.Database.Source, config.Database.Driver)
 
-	return &App{
-		fiber: app,
-		db:    dbConnection,
+	app := &App{
+		Fiber: fiber,
+		Store: dbConnection,
 	}
+
+	return app
 }
 
 func (app *App) Start() {
-	app.fiber.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hello, World!")
-	})
-
-	err := app.db.Ping()
-
-	if err != nil {
-		log.Fatal("DB connection failed: ", err)
-	}
+	app.registerDefaultRoutes()
+	app.registerDomainRoutes()
 
 	PORT := os.Getenv("PORT")
 
-	log.Fatal(app.fiber.Listen(":" + PORT))
+	log.Fatal(app.Fiber.Listen(":" + PORT))
+}
+
+func (app *App) registerDomainRoutes() {
+	dish.RegisterRoutes(app.Fiber, app.Store)
+}
+
+func (app *App) registerDefaultRoutes() {
+	app.Fiber.Get("/", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"msg": "ok",
+		})
+	})
 }

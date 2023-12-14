@@ -1,6 +1,8 @@
 package main
 
-import "dancing-pony/cmd/server"
+import (
+	"dancing-pony/cmd/server"
+)
 
 func main() {
 	server := server.NewApp()

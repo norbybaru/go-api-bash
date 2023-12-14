@@ -31,7 +31,11 @@ func Init(uri string, driver string) *DB {
 	db, err := dbx.MustOpen(driver, uri)
 
 	if err != nil {
-		log.Fatal("DB ERR: ", err)
+		log.Fatal("ERR - Open DB failed: ", err)
+	}
+
+	if err = db.DB().Ping(); err != nil {
+		log.Fatal("ERR - Ping DB failed: ", err)
 	}
 
 	return New(db)
