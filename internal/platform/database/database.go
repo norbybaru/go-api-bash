@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"log"
 
 	dbx "github.com/go-ozzo/ozzo-dbx"
@@ -19,6 +20,22 @@ func (db *DB) Query() *dbx.DB {
 
 func (db *DB) Ping() error {
 	return db.query.DB().Ping()
+}
+
+type contextKey int
+
+const (
+	txKey contextKey = iota
+)
+
+// With returns a Builder that can be used to build and execute SQL queries.
+// With will return the transaction if it is found in the given context.
+// Otherwise it will return a DB connection associated with the context.
+func (db *DB) With(ctx context.Context) dbx.Builder {
+	if tx, ok := ctx.Value(txKey).(*dbx.Tx); ok {
+		return tx
+	}
+	return db.query.WithContext(ctx)
 }
 
 // New returns a new DB connection that wraps the given dbx.DB instance.

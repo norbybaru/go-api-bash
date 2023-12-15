@@ -4,6 +4,7 @@ import (
 	"dancing-pony/internal/app/dish"
 	"dancing-pony/internal/platform/config"
 	"dancing-pony/internal/platform/database"
+	"dancing-pony/internal/platform/migration"
 	"log"
 	"os"
 
@@ -31,6 +32,7 @@ func NewApp() *App {
 func (app *App) Start() {
 	app.registerDefaultRoutes()
 	app.registerDomainRoutes()
+	RunDbMigrations()
 
 	PORT := os.Getenv("PORT")
 
@@ -47,4 +49,8 @@ func (app *App) registerDefaultRoutes() {
 			"msg": "ok",
 		})
 	})
+}
+
+func RunDbMigrations() {
+	migration.RunMigrations(config.Database.Source)
 }

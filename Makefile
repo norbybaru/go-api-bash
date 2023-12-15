@@ -1,6 +1,8 @@
 SHELL := /bin/bash
 BINARY_NAME = dancing-pony
 DC = docker-compose
+MIGRATION_DIR = internal/platform/migration/files
+MIGRATE = @$(MIGRATE)
 MODULE = $(shell go list -m)
 PACKAGES := $(shell go list ./... | grep -v /vendor/)
 
@@ -29,6 +31,38 @@ lint: ## Run the linter (perform static analysis)
 
 fmt: ## Apply code formatting
 	@go fmt $(PACKAGES)
+
+##@ Migration
+
+migration: ## Creating migration files
+	@read -p "Enter migration name: " Mname; \
+	migrate create -ext sql -dir ${MIGRATION_DIR} -seq "$$Mname"
+
+migrate: ## Apply all up migrations
+	@$(MIGRATE) up
+
+migrate-down: ## Apply all down migrations
+	@$(MIGRATE) down
+
+migrate-drop: ## Drop everything inside database
+	@$(MIGRATE) drop
+
+migrate-force: ## Set version but don't run migration (ignores dirty state)
+	@read -p "Specify version: " Mversion; \
+	@$(MIGRATE) force "$$Mversion"
+
+migrate-rollback: ## Migration rollback to version V
+	@read -p "Specify version: " Mversion; \
+	@$(MIGRATE) goto "$$Mversion"
+
+migrate-reset: ## reset database and re-run all migrations
+	@echo "Resetting database..."
+	@$(MIGRATE) drop
+	@echo "Running all database migrations..."
+	@$(MIGRATE) up
+
+migrate-v: ## Print current migration version
+	@$(MIGRATE) version
 
 ##@ Docker
 
