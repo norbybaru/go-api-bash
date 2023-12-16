@@ -1,6 +1,7 @@
 package dish
 
 import (
+	"dancing-pony/internal/platform/validator"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -15,8 +16,8 @@ func NewController(service Service) *dishController {
 }
 
 // Show all dishes resource handler
-func (r *dishController) ListDishes(c *fiber.Ctx) error {
-	dishes, err := r.service.Browse(c.Context(), 0, -1)
+func (r *dishController) Browse(c *fiber.Ctx) error {
+	dishes, err := r.service.ListDishes(c.Context(), 0, -1)
 
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -32,9 +33,18 @@ func (r *dishController) ListDishes(c *fiber.Ctx) error {
 }
 
 // View a single dish resource handler
-func (r *dishController) ShowDish(c *fiber.Ctx) error {
-	slug := c.Params("slug")
-	dish, err := r.service.Read(c.Context(), slug)
+func (r *dishController) Read(c *fiber.Ctx) error {
+	dishId := c.Params("id")
+	id, err := strconv.Atoi(dishId)
+
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"error":   err.Error(),
+		})
+	}
+
+	dish, err := r.service.ViewDish(c.Context(), id)
 
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -50,7 +60,7 @@ func (r *dishController) ShowDish(c *fiber.Ctx) error {
 }
 
 // Create a new dish resource handler
-func (r *dishController) CreateDish(c *fiber.Ctx) error {
+func (r *dishController) Add(c *fiber.Ctx) error {
 	var request CreateDishRequest
 
 	if err := c.BodyParser(&request); err != nil {
@@ -60,10 +70,22 @@ func (r *dishController) CreateDish(c *fiber.Ctx) error {
 		})
 	}
 
-	dish, err := r.service.Add(c.Context(), request)
+	validator := validator.NewValidator()
+
+	if err := validator.Validate(request); err != nil {
+		return validator.JsonResponse(c, err)
+	}
+
+	dish, err := r.service.CreateDish(c.Context(), request)
 
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+		code := fiber.StatusInternalServerError
+
+		if err == ValidationNameAlreadyExist {
+			code = fiber.StatusBadRequest
+		}
+
+		return c.Status(code).JSON(fiber.Map{
 			"success": false,
 			"error":   err.Error(),
 		})
@@ -76,7 +98,7 @@ func (r *dishController) CreateDish(c *fiber.Ctx) error {
 }
 
 // Update an existing dish resource handler
-func (r *dishController) UpdateDish(c *fiber.Ctx) error {
+func (r *dishController) Edit(c *fiber.Ctx) error {
 	var request UpdateDishRequest
 
 	dishId := c.Params("id")
@@ -96,7 +118,7 @@ func (r *dishController) UpdateDish(c *fiber.Ctx) error {
 		})
 	}
 
-	dish, err := r.service.Edit(c.Context(), request, id)
+	dish, err := r.service.UpdateDish(c.Context(), request, id)
 
 	if err != nil {
 		code := fiber.StatusInternalServerError
@@ -118,8 +140,7 @@ func (r *dishController) UpdateDish(c *fiber.Ctx) error {
 }
 
 // Delete an existing dish resource handler
-func (r *dishController) DestroyDish(c *fiber.Ctx) error {
-
+func (r *dishController) Delete(c *fiber.Ctx) error {
 	dishId := c.Params("id")
 	id, err := strconv.Atoi(dishId)
 
@@ -130,7 +151,7 @@ func (r *dishController) DestroyDish(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := r.service.Delete(c.Context(), id); err != nil {
+	if err := r.service.DeleteDish(c.Context(), id); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"success": false,
 			"error":   err.Error(),

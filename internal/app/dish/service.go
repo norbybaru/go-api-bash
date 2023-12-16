@@ -11,15 +11,15 @@ import (
 // Service encapsulates business logic for Dishes.
 type Service interface {
 	// List all dishes and paginate through all
-	Browse(ctx context.Context, page int, limit int) (*[]Dish, error)
+	ListDishes(ctx context.Context, page int, limit int) (*[]Dish, error)
 	// View a single dish
-	Read(ctx context.Context, slug string) (*Dish, error)
+	ViewDish(ctx context.Context, id int) (*Dish, error)
 	// Update a single dish
-	Edit(ctx context.Context, input UpdateDishRequest, id int) (*Dish, error)
+	UpdateDish(ctx context.Context, input UpdateDishRequest, id int) (*Dish, error)
 	// Add a new dish
-	Add(ctx context.Context, input CreateDishRequest) (*Dish, error)
+	CreateDish(ctx context.Context, input CreateDishRequest) (*Dish, error)
 	// Delete an existing dish
-	Delete(ctx context.Context, id int) error
+	DeleteDish(ctx context.Context, id int) error
 }
 
 type dishService struct {
@@ -31,14 +31,15 @@ func NewDishService(repo Repository) Service {
 }
 
 var (
-	errorCreateDish       = errors.New("Failed to create a new dish")
-	errorBrowseDishes     = errors.New("Failed to retrieve dishes")
-	errorInvalidDish      = errors.New("Failed to retrieve dish")
-	errorUpdateDish       = errors.New("Failed to update dish")
-	ErrorResourceNotFound = errors.New("Resource not found")
+	errorCreateDish            = errors.New("Failed to create a new dish")
+	errorBrowseDishes          = errors.New("Failed to retrieve dishes")
+	errorInvalidDish           = errors.New("Failed to retrieve dish")
+	errorUpdateDish            = errors.New("Failed to update dish")
+	ValidationNameAlreadyExist = errors.New("Dish name is already taken")
+	ErrorResourceNotFound      = errors.New("Resource not found")
 )
 
-func (s *dishService) Browse(ctx context.Context, page int, limit int) (*[]Dish, error) {
+func (s *dishService) ListDishes(ctx context.Context, page int, limit int) (*[]Dish, error) {
 	dishes, err := s.repo.Query(ctx, page, limit)
 
 	if err != nil {
@@ -49,8 +50,8 @@ func (s *dishService) Browse(ctx context.Context, page int, limit int) (*[]Dish,
 	return dishes, nil
 }
 
-func (s *dishService) Read(ctx context.Context, slug string) (*Dish, error) {
-	dish, err := s.repo.GetBySlug(ctx, slug)
+func (s *dishService) ViewDish(ctx context.Context, id int) (*Dish, error) {
+	dish, err := s.repo.GetById(ctx, id)
 
 	if err != nil {
 		log.Error(err)
@@ -60,7 +61,7 @@ func (s *dishService) Read(ctx context.Context, slug string) (*Dish, error) {
 	return dish, nil
 }
 
-func (s *dishService) Edit(ctx context.Context, input UpdateDishRequest, id int) (*Dish, error) {
+func (s *dishService) UpdateDish(ctx context.Context, input UpdateDishRequest, id int) (*Dish, error) {
 	dish, err := s.repo.GetById(ctx, id)
 
 	if err != nil {
@@ -73,21 +74,44 @@ func (s *dishService) Edit(ctx context.Context, input UpdateDishRequest, id int)
 		return nil, errorInvalidDish
 	}
 
-	dishData := NewDish(input.Name, input.Description, input.ImageUrl, input.Price)
-	dishData.Id = dish.Id
-	dishData.CreatedAt = dish.CreatedAt
+	updatedDish := NewDish(input.Name, input.Description, input.ImageUrl, input.Price)
 
-	if err := s.repo.Update(ctx, *dishData); err != nil {
+	existingDish, err := s.repo.GetBySlug(ctx, dish.Slug)
+
+	if err != nil {
+		log.Error(err)
+		return nil, errorCreateDish
+	}
+
+	if existingDish != nil && existingDish.Slug != updatedDish.Slug {
+		return nil, ValidationNameAlreadyExist
+	}
+
+	updatedDish.Id = dish.Id
+	updatedDish.CreatedAt = dish.CreatedAt
+
+	if err := s.repo.Update(ctx, *updatedDish); err != nil {
 		log.Error(err)
 		return nil, errorUpdateDish
 	}
 
-	return dishData, nil
+	return updatedDish, nil
 }
 
-func (s *dishService) Add(ctx context.Context, input CreateDishRequest) (*Dish, error) {
+func (s *dishService) CreateDish(ctx context.Context, input CreateDishRequest) (*Dish, error) {
 
 	dish := NewDish(input.Name, input.Description, input.ImageUrl, input.Price)
+
+	exist, err := s.repo.DishSlugExist(ctx, dish.Slug)
+
+	if err != nil {
+		log.Error(err)
+		return nil, errorCreateDish
+	}
+
+	if exist {
+		return nil, ValidationNameAlreadyExist
+	}
 
 	if err := s.repo.Create(ctx, *dish); err != nil {
 		log.Error(err)
@@ -97,7 +121,7 @@ func (s *dishService) Add(ctx context.Context, input CreateDishRequest) (*Dish, 
 	return dish, nil
 }
 
-func (s *dishService) Delete(ctx context.Context, id int) error {
+func (s *dishService) DeleteDish(ctx context.Context, id int) error {
 	if err := s.repo.Delete(ctx, id); err != nil {
 		if err == sql.ErrNoRows {
 			return ErrorResourceNotFound

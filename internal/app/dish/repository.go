@@ -14,6 +14,8 @@ type Repository interface {
 	GetById(ctx context.Context, id int) (*Dish, error)
 	// Get returns the dish with the specified dish ID.
 	GetBySlug(ctx context.Context, slug string) (*Dish, error)
+	// Verify whether dish slug already exist
+	DishSlugExist(ctx context.Context, slug string) (bool, error)
 	// Count returns the number of dishes.
 	Count(ctx context.Context) (int, error)
 	// Query returns the list of dishes with the given offset and limit.
@@ -104,4 +106,25 @@ func (r *dishRepository) Delete(ctx context.Context, id int) error {
 	return r.db.With(ctx).
 		Model(dish).
 		Delete()
+}
+
+func (r *dishRepository) DishSlugExist(ctx context.Context, slug string) (bool, error) {
+	var count int
+	err := r.db.With(ctx).
+		Select("COUNT(*)").
+		From("dishes").
+		Where(dbx.HashExp{
+			"slug": slug,
+		}).
+		Row(&count)
+
+	if err != nil {
+		return false, nil
+	}
+
+	if count > 0 {
+		return true, nil
+	}
+
+	return false, err
 }

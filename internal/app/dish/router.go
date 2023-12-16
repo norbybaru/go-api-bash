@@ -12,9 +12,9 @@ func RegisterRoutes(fiber *fiber.App, db *database.DB) {
 	router := fiber.Group("/api")
 
 	group := router.Group("/v1/dishes")
-	group.Get("/", c.ListDishes).Name("dish.index")
-	group.Post("/", c.CreateDish).Name("dish.store")
-	group.Get("/:slug", c.ShowDish).Name("dish.show")
-	group.Put("/:id", c.UpdateDish).Name("dish.update")
-	group.Delete("/:id", c.DestroyDish).Name("dish.destroy")
+	group.Get("/", c.Browse).Name("dish.index")
+	group.Get("/:id", c.Read).Name("dish.show")
+	group.Put("/:id", c.Edit).Name("dish.update")
+	group.Post("/", c.Add).Name("dish.store")
+	group.Delete("/:id", c.Delete).Name("dish.destroy")
 }
