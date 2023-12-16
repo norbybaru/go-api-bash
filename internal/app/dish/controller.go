@@ -1,7 +1,10 @@
 package dish
 
 import (
+	"dancing-pony/internal/common/utils"
+	"dancing-pony/internal/platform/paginator"
 	"dancing-pony/internal/platform/validator"
+	"fmt"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -17,7 +20,9 @@ func NewController(service Service) *dishController {
 
 // Show all dishes resource handler
 func (r *dishController) Browse(c *fiber.Ctx) error {
-	dishes, err := r.service.ListDishes(c.Context(), 0, -1)
+	limit := utils.ParseInt(c.Query(paginator.PerPageVar), paginator.DefaultPageSize)
+	page := utils.ParseInt(c.Query(paginator.PageVar), 0)
+	pagination, err := r.service.ListDishes(c.Context(), page, limit)
 
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -26,9 +31,13 @@ func (r *dishController) Browse(c *fiber.Ctx) error {
 		})
 	}
 
+	fullURL := fmt.Sprintf("%s%s", c.BaseURL(), c.Path())
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"success": true,
-		"data":    dishes,
+		"data":    pagination.Records,
+		"meta":    pagination.Paginator,
+		"links":   pagination.Paginator.BuildLinks(fullURL, limit),
 	})
 }
 

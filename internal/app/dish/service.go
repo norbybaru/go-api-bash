@@ -11,7 +11,7 @@ import (
 // Service encapsulates business logic for Dishes.
 type Service interface {
 	// List all dishes and paginate through all
-	ListDishes(ctx context.Context, page int, limit int) (*[]Dish, error)
+	ListDishes(ctx context.Context, page int, limit int) (*PaginatorResult, error)
 	// View a single dish
 	ViewDish(ctx context.Context, id int) (*Dish, error)
 	// Update a single dish
@@ -39,15 +39,15 @@ var (
 	ErrorResourceNotFound      = errors.New("Resource not found")
 )
 
-func (s *dishService) ListDishes(ctx context.Context, page int, limit int) (*[]Dish, error) {
-	dishes, err := s.repo.Query(ctx, page, limit)
+func (s *dishService) ListDishes(ctx context.Context, page int, limit int) (*PaginatorResult, error) {
+	paginatorResult, err := s.repo.Paginate(ctx, page, limit)
 
 	if err != nil {
 		log.Error(err)
 		return nil, errorBrowseDishes
 	}
 
-	return dishes, nil
+	return paginatorResult, nil
 }
 
 func (s *dishService) ViewDish(ctx context.Context, id int) (*Dish, error) {

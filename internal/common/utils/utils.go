@@ -1,13 +1,13 @@
 package utils
 
-import "github.com/segmentio/ksuid"
+import "strconv"
 
-func GenUUID() ksuid.KSUID {
-	return ksuid.New()
-}
-
-func GenUUIDString() string {
-	id := ksuid.New()
-
-	return id.String()
+func ParseInt(value string, defaultValue int) int {
+	if value == "" {
+		return defaultValue
+	}
+	if result, err := strconv.Atoi(value); err == nil {
+		return result
+	}
+	return defaultValue
 }

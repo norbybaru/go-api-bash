@@ -17,7 +17,9 @@ build: ## Build the binary
 	@echo "Dancing Pony built!"
 
 test: ## Test the project
-	@go test ./...
+	@echo "Testing..."
+	@go test -v -cover -short ./...
+	@echo "Done!"
 
 start: build ## Build binary & start Api server
 	@echo "Starting Dancing Pony..."

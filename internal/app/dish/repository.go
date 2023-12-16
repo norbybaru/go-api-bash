@@ -3,6 +3,7 @@ package dish
 import (
 	"context"
 	"dancing-pony/internal/platform/database"
+	"dancing-pony/internal/platform/paginator"
 	"time"
 
 	dbx "github.com/go-ozzo/ozzo-dbx"
@@ -19,7 +20,7 @@ type Repository interface {
 	// Count returns the number of dishes.
 	Count(ctx context.Context) (int, error)
 	// Query returns the list of dishes with the given offset and limit.
-	Query(ctx context.Context, offset, limit int) (*[]Dish, error)
+	Paginate(ctx context.Context, page int, limit int) (*PaginatorResult, error)
 	// Create saves a new dish in the storage.
 	Create(ctx context.Context, dish Dish) error
 	// Update updates the dish with given ID in the storage.
@@ -66,17 +67,42 @@ func (r *dishRepository) Count(ctx context.Context) (int, error) {
 	return count, err
 }
 
-func (r *dishRepository) Query(ctx context.Context, offset, limit int) (*[]Dish, error) {
+type PaginatorResult struct {
+	Paginator *paginator.Paginator
+	Records   *[]Dish
+}
+
+func (r *dishRepository) Paginate(ctx context.Context, page int, limit int) (*PaginatorResult, error) {
+	var rowCount int
+	queryBuilder := r.db.With(ctx).
+		Select("COUNT(*)").
+		From("dishes")
+
+	err := queryBuilder.
+		Row(&rowCount)
+
+	if err != nil {
+		return nil, err
+	}
+
+	paginator := paginator.NewPaginator(page, limit, rowCount)
+
 	var dishes *[]Dish
-	err := r.db.With(ctx).
+	err = queryBuilder.
 		Select().
-		From("dishes").
-		OrderBy("id").
-		Offset(int64(offset)).
-		Limit(int64(limit)).
+		OrderBy("id DESC").
+		Offset(int64(paginator.Offset())).
+		Limit(int64(paginator.Limit())).
 		All(&dishes)
 
-	return dishes, err
+	if err != nil {
+		return nil, err
+	}
+
+	return &PaginatorResult{
+		Paginator: paginator,
+		Records:   dishes,
+	}, nil
 }
 
 func (r *dishRepository) Create(ctx context.Context, dish Dish) error {
