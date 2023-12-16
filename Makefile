@@ -23,6 +23,9 @@ start: build ## Build binary & start Api server
 	@echo "Starting Dancing Pony..."
 	@./${BINARY_NAME}
 
+start-dev: ## Start application with Hot reload
+	@CompileDaemon --build="make build" --command="./${BINARY_NAME}"
+
 run: ## Start Api server
 	@go run ./main.go
 
@@ -73,10 +76,13 @@ dc-up-build: ## Rebuild docker images for container & start application
 	$(DC) up -d --build
 
 dc-up: ## Start containers applications
-	$(DC) up -d
+	$(DC) up -d && $(DC) logs -f app
 
 dc-logs: ## Show all container logs
 	$(DC) logs -f
+
+dc-app-logs: ## Show container app logs
+	$(DC) logs -f app
 
 dc-stop: ## Stop container services
 	$(DC) stop

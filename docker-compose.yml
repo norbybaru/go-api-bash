@@ -1,5 +1,24 @@
 version: '3.8'
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    container_name: dancing-pony-app
+    depends_on:
+      - db
+    networks:
+      - default
+    volumes:
+      - .:/app
+    ports:
+      - "${HTTP_LISTEN_ADDR:-8080}:${HTTP_LISTEN_ADDR:-8080}"
+    env_file:
+      - .env
+    environment:
+      DB_SOURCE: '${DB_DRIVER}://${DB_USERNAME}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=${DB_SSL_MODE}'
+
   db:
     image: postgres:14.1
     container_name: dancing-pony-db
