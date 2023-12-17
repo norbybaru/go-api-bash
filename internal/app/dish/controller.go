@@ -23,14 +23,8 @@ func NewController(service Service) *dishController {
 func (r *dishController) Browse(c *fiber.Ctx) error {
 	limit := utils.ParseInt(c.Query(paginator.PerPageVar), paginator.DefaultPageSize)
 	page := utils.ParseInt(c.Query(paginator.PageVar), 0)
-	pagination, err := r.service.ListDishes(c.Context(), page, limit)
 
-	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"success": false,
-			"error":   jwt.ErrorUnAuthenticated,
-		})
-	}
+	pagination, err := r.service.ListDishes(c.Context(), page, limit)
 
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -93,6 +87,17 @@ func (r *dishController) Add(c *fiber.Ctx) error {
 		return validator.JsonResponse(c, err)
 	}
 
+	token, err := jwt.ExtractTokenMetadata(c)
+
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"success": false,
+			"error":   jwt.ErrorUnAuthenticated,
+		})
+	}
+
+	request.UserId = int(token.Identifier.(float64))
+
 	dish, err := r.service.CreateDish(c.Context(), request)
 
 	if err != nil {
@@ -135,6 +140,17 @@ func (r *dishController) Edit(c *fiber.Ctx) error {
 		})
 	}
 
+	token, err := jwt.ExtractTokenMetadata(c)
+
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"success": false,
+			"error":   jwt.ErrorUnAuthenticated,
+		})
+	}
+
+	request.UserId = int(token.Identifier.(float64))
+
 	dish, err := r.service.UpdateDish(c.Context(), request, id)
 
 	if err != nil {
@@ -168,7 +184,18 @@ func (r *dishController) Delete(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := r.service.DeleteDish(c.Context(), id); err != nil {
+	token, err := jwt.ExtractTokenMetadata(c)
+
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"success": false,
+			"error":   jwt.ErrorUnAuthenticated,
+		})
+	}
+
+	userId := int(token.Identifier.(float64))
+
+	if err := r.service.DeleteDish(c.Context(), id, userId); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"success": false,
 			"error":   err.Error(),

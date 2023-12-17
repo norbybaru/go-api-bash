@@ -1,6 +1,7 @@
 package dish
 
 type CreateDishRequest struct {
+	UserId      int    `json:"-"`
 	Name        string `json:"name" validate:"required,lte=255"`
 	Description string `json:"description" validate:"required"`
 	ImageUrl    string `json:"image_url" validate:"required,lte=300,url"`
@@ -8,6 +9,7 @@ type CreateDishRequest struct {
 }
 
 type UpdateDishRequest struct {
+	UserId      int
 	Id          string `json:"id" validate:"required"`
 	Name        string `json:"name" validate:"required,lte=255"`
 	Description string `json:"description" validate:"required"`

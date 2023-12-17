@@ -19,7 +19,7 @@ type Service interface {
 	// Add a new dish
 	CreateDish(ctx context.Context, input CreateDishRequest) (*Dish, error)
 	// Delete an existing dish
-	DeleteDish(ctx context.Context, id int) error
+	DeleteDish(ctx context.Context, id int, userId int) error
 }
 
 type dishService struct {
@@ -74,7 +74,11 @@ func (s *dishService) UpdateDish(ctx context.Context, input UpdateDishRequest, i
 		return nil, errorInvalidDish
 	}
 
-	updatedDish := NewDish(input.Name, input.Description, input.ImageUrl, input.Price)
+	if dish.UserId != input.UserId {
+		return nil, ErrorResourceNotFound
+	}
+
+	updatedDish := NewDish(input.Name, input.Description, input.ImageUrl, input.Price, input.UserId)
 
 	existingDish, err := s.repo.GetBySlug(ctx, dish.Slug)
 
@@ -83,7 +87,7 @@ func (s *dishService) UpdateDish(ctx context.Context, input UpdateDishRequest, i
 		return nil, errorCreateDish
 	}
 
-	if existingDish != nil && existingDish.Slug != updatedDish.Slug {
+	if existingDish != nil && existingDish.Slug == updatedDish.Slug {
 		return nil, ValidationNameAlreadyExist
 	}
 
@@ -100,7 +104,7 @@ func (s *dishService) UpdateDish(ctx context.Context, input UpdateDishRequest, i
 
 func (s *dishService) CreateDish(ctx context.Context, input CreateDishRequest) (*Dish, error) {
 
-	dish := NewDish(input.Name, input.Description, input.ImageUrl, input.Price)
+	dish := NewDish(input.Name, input.Description, input.ImageUrl, input.Price, input.UserId)
 
 	exist, err := s.repo.DishSlugExist(ctx, dish.Slug)
 
@@ -118,11 +122,18 @@ func (s *dishService) CreateDish(ctx context.Context, input CreateDishRequest) (
 		return nil, errorCreateDish
 	}
 
+	dish, err = s.repo.GetBySlug(ctx, dish.Slug)
+
+	if err != nil {
+		log.Error(err)
+		return nil, errorCreateDish
+	}
+
 	return dish, nil
 }
 
-func (s *dishService) DeleteDish(ctx context.Context, id int) error {
-	if err := s.repo.Delete(ctx, id); err != nil {
+func (s *dishService) DeleteDish(ctx context.Context, id int, userId int) error {
+	if err := s.repo.Delete(ctx, id, userId); err != nil {
 		if err == sql.ErrNoRows {
 			return ErrorResourceNotFound
 		}

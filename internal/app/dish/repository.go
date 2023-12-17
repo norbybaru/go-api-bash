@@ -4,6 +4,7 @@ import (
 	"context"
 	"dancing-pony/internal/platform/database"
 	"dancing-pony/internal/platform/paginator"
+	"database/sql"
 	"time"
 
 	dbx "github.com/go-ozzo/ozzo-dbx"
@@ -26,7 +27,7 @@ type Repository interface {
 	// Update updates the dish with given ID in the storage.
 	Update(ctx context.Context, dish Dish) error
 	// Delete removes the dish with given ID from the storage.
-	Delete(ctx context.Context, id int) error
+	Delete(ctx context.Context, id int, userId int) error
 }
 
 type dishRepository struct {
@@ -123,10 +124,14 @@ func (r *dishRepository) Update(ctx context.Context, dish Dish) error {
 		Update()
 }
 
-func (r *dishRepository) Delete(ctx context.Context, id int) error {
+func (r *dishRepository) Delete(ctx context.Context, id int, userId int) error {
 	dish, err := r.GetById(ctx, id)
 	if err != nil {
 		return err
+	}
+
+	if dish.UserId != userId {
+		return sql.ErrNoRows
 	}
 
 	return r.db.With(ctx).

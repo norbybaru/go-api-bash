@@ -17,11 +17,12 @@ type Dish struct {
 	Slug        string    `json:"slug" db:"slug"`
 	Price       uint64    `json:"price" db:"price"`
 	ImageUrl    string    `json:"image_url" db:"image_url"`
+	UserId      int       `json:"-" db:"user_id"`
 	CreatedAt   time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at" db:"updated_at"`
 }
 
-func NewDish(name string, description string, imageUrl string, price uint64) *Dish {
+func NewDish(name string, description string, imageUrl string, price uint64, userId int) *Dish {
 	now := time.Now().UTC()
 	return &Dish{
 		Name:        name,
@@ -29,6 +30,7 @@ func NewDish(name string, description string, imageUrl string, price uint64) *Di
 		Slug:        slug.Make(name),
 		Price:       price,
 		ImageUrl:    imageUrl,
+		UserId:      userId,
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
