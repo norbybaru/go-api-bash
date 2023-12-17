@@ -1,7 +1,9 @@
 package dish
 
 import (
+	"dancing-pony/internal/platform/config"
 	"dancing-pony/internal/platform/database"
+	"dancing-pony/internal/platform/middleware"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -11,7 +13,9 @@ func RegisterRoutes(fiber *fiber.App, db *database.DB) {
 
 	router := fiber.Group("/api")
 
-	group := router.Group("/v1/dishes")
+	jwtMiddleware := middleware.JWTMiddleware(config.JWT.Secret, config.JWT.ContextKey)
+
+	group := router.Group("/v1/dishes", jwtMiddleware)
 	group.Get("/", c.Browse).Name("dish.index")
 	group.Get("/:id", c.Read).Name("dish.show")
 	group.Put("/:id", c.Edit).Name("dish.update")

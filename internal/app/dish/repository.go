@@ -152,5 +152,5 @@ func (r *dishRepository) DishSlugExist(ctx context.Context, slug string) (bool, 
 		return true, nil
 	}
 
-	return false, err
+	return false, nil
 }

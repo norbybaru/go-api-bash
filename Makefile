@@ -2,7 +2,7 @@ SHELL := /bin/bash
 BINARY_NAME = dancing-pony
 DC = docker-compose
 MIGRATION_DIR = internal/platform/migration/files
-MIGRATE = @$(MIGRATE)
+MIGRATE = migrate -database ${DB_SOURCE} -path ${MIGRATION_DIR}
 MODULE = $(shell go list -m)
 PACKAGES := $(shell go list ./... | grep -v /vendor/)
 
@@ -44,30 +44,30 @@ migration: ## Creating migration files
 	migrate create -ext sql -dir ${MIGRATION_DIR} -seq "$$Mname"
 
 migrate: ## Apply all up migrations
-	@$(MIGRATE) up
+	$(MIGRATE) up
 
 migrate-down: ## Apply all down migrations
-	@$(MIGRATE) down
+	$(MIGRATE) down
 
 migrate-drop: ## Drop everything inside database
-	@$(MIGRATE) drop
+	$(MIGRATE) drop
 
 migrate-force: ## Set version but don't run migration (ignores dirty state)
 	@read -p "Specify version: " Mversion; \
-	@$(MIGRATE) force "$$Mversion"
+	$(MIGRATE) force "$$Mversion"
 
 migrate-rollback: ## Migration rollback to version V
 	@read -p "Specify version: " Mversion; \
-	@$(MIGRATE) goto "$$Mversion"
+	$(MIGRATE) goto "$$Mversion"
 
 migrate-reset: ## reset database and re-run all migrations
 	@echo "Resetting database..."
-	@$(MIGRATE) drop
+	$(MIGRATE) drop
 	@echo "Running all database migrations..."
-	@$(MIGRATE) up
+	$(MIGRATE) up
 
 migrate-v: ## Print current migration version
-	@$(MIGRATE) version
+	$(MIGRATE) version
 
 ##@ Docker
 

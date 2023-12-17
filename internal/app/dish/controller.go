@@ -1,6 +1,7 @@
 package dish
 
 import (
+	"dancing-pony/internal/common/jwt"
 	"dancing-pony/internal/common/utils"
 	"dancing-pony/internal/platform/paginator"
 	"dancing-pony/internal/platform/validator"
@@ -25,9 +26,16 @@ func (r *dishController) Browse(c *fiber.Ctx) error {
 	pagination, err := r.service.ListDishes(c.Context(), page, limit)
 
 	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"success": false,
+			"error":   jwt.ErrorUnAuthenticated,
+		})
+	}
+
+	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"success": false,
-			"msg":     err.Error(),
+			"error":   err.Error(),
 		})
 	}
 
