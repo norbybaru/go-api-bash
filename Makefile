@@ -39,7 +39,7 @@ fmt: ## Apply code formatting
 
 ##@ Migration
 
-migration: ## Creating migration files
+migrate-new: ## Creating migration files
 	@read -p "Enter migration name: " Mname; \
 	migrate create -ext sql -dir ${MIGRATION_DIR} -seq "$$Mname"
 
