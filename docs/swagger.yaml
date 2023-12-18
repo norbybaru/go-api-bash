@@ -242,7 +242,7 @@ info:
   contact:
     email: norbybaru@gmail.com
     name: API Support
-  description: This is a pai documentation nof how to interact with this service
+  description: This is a API documentation how how to interact with this service
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html

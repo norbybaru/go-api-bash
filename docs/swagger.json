@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "This is a pai documentation nof how to interact with this service",
+        "description": "This is a API documentation how how to interact with this service",
         "termsOfService": "http://swagger.io/terms/",
         "contact": {
             "name": "API Support",

@@ -243,28 +243,21 @@ func (r *dishController) Delete(c *fiber.Ctx) error {
 	id, err := strconv.Atoi(dishId)
 
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"success": false,
-			"error":   err.Error(),
-		})
+		return c.
+			Status(fiber.StatusBadRequest).
+			JSON(response.NewErrorResponse(err))
 	}
-
-	token, err := jwt.ExtractTokenMetadata(c)
 
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"success": false,
-			"error":   jwt.ErrorUnAuthenticated,
-		})
+		return c.
+			Status(fiber.StatusUnauthorized).
+			JSON(response.NewUnauthenticatedResponse())
 	}
 
-	userId := int(token.Identifier.(float64))
-
-	if err := r.service.DeleteDish(c.Context(), id, userId); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"success": false,
-			"error":   err.Error(),
-		})
+	if err := r.service.DeleteDish(c.Context(), id); err != nil {
+		return c.
+			Status(fiber.StatusBadRequest).
+			JSON(response.NewErrorResponse(err))
 	}
 
 	return c.Status(fiber.StatusNoContent).JSON(fiber.Map{

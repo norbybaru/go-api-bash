@@ -37,6 +37,9 @@ lint: ## Run the linter (perform static analysis)
 fmt: ## Apply code formatting
 	@go fmt $(PACKAGES)
 
+swag: ## Auto generate api docs
+	swag init
+
 ##@ Migration
 
 migrate-new: ## Creating migration files

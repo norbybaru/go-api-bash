@@ -2,6 +2,7 @@ package rating
 
 import (
 	"dancing-pony/internal/common/jwt"
+	"dancing-pony/internal/common/response"
 	"dancing-pony/internal/platform/validator"
 
 	"github.com/gofiber/fiber/v2"
@@ -33,10 +34,9 @@ func (r *ratingController) AddRating(c *fiber.Ctx) error {
 	var request CreateRatingRequest
 
 	if err := c.BodyParser(&request); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"success": false,
-			"error":   err.Error(),
-		})
+		return c.
+			Status(fiber.StatusBadRequest).
+			JSON(response.NewErrorResponse(err))
 	}
 
 	validator := validator.NewValidator()
@@ -48,10 +48,9 @@ func (r *ratingController) AddRating(c *fiber.Ctx) error {
 	token, err := jwt.ExtractTokenMetadata(c)
 
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"success": false,
-			"error":   jwt.ErrorUnAuthenticated,
-		})
+		return c.
+			Status(fiber.StatusUnauthorized).
+			JSON(response.NewUnauthenticatedResponse())
 	}
 
 	request.UserId = token.GetIdentifier()
@@ -63,10 +62,9 @@ func (r *ratingController) AddRating(c *fiber.Ctx) error {
 			code = fiber.StatusUnprocessableEntity
 		}
 
-		return c.Status(code).JSON(fiber.Map{
-			"success": false,
-			"error":   err.Error(),
-		})
+		return c.
+			Status(code).
+			JSON(response.NewErrorResponse(err))
 	}
 
 	return c.Status(fiber.StatusNoContent).JSON(fiber.Map{})

@@ -935,7 +935,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "",
-	Description:      "This is a pai documentation nof how to interact with this service",
+	Description:      "This is a API documentation how how to interact with this service",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

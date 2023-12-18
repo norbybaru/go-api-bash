@@ -2,6 +2,7 @@ package main
 
 import (
 	"dancing-pony/cmd/server"
+	_ "github.com/joho/godotenv/autoload"
 )
 
 // @Dancing Pony API

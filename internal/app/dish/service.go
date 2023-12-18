@@ -20,7 +20,7 @@ type Service interface {
 	// Add a new dish
 	CreateDish(ctx context.Context, input CreateDishRequest) (*Dish, error)
 	// Delete an existing dish
-	DeleteDish(ctx context.Context, id int, userId int) error
+	DeleteDish(ctx context.Context, id int) error
 }
 
 type dishService struct {
@@ -79,10 +79,6 @@ func (s *dishService) UpdateDish(ctx context.Context, input UpdateDishRequest, i
 		return nil, errorInvalidDish
 	}
 
-	if dish.UserId != input.UserId {
-		return nil, ErrorResourceNotFound
-	}
-
 	updatedDish := NewDish(input.Name, input.Description, input.ImageUrl, input.Price, input.UserId)
 
 	newSlugDishExist, err := s.repo.GetBySlug(ctx, updatedDish.Slug)
@@ -137,8 +133,8 @@ func (s *dishService) CreateDish(ctx context.Context, input CreateDishRequest) (
 	return dish, nil
 }
 
-func (s *dishService) DeleteDish(ctx context.Context, id int, userId int) error {
-	if err := s.repo.Delete(ctx, id, userId); err != nil {
+func (s *dishService) DeleteDish(ctx context.Context, id int) error {
+	if err := s.repo.Delete(ctx, id); err != nil {
 		if err == sql.ErrNoRows {
 			return ErrorResourceNotFound
 		}
