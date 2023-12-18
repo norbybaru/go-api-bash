@@ -12,6 +12,8 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
 type App struct {
@@ -40,6 +42,8 @@ func NewApp() *App {
 func (app *App) Start() {
 	app.registerDefaultRoutes()
 	app.registerDomainRoutes()
+	app.LoadDefaultMiddleware()
+
 	RunDbMigrations()
 
 	PORT := os.Getenv("PORT")
@@ -65,4 +69,11 @@ func (app *App) registerDefaultRoutes() {
 
 func RunDbMigrations() {
 	migration.RunMigrations(config.Database.Source)
+}
+
+func (app *App) LoadDefaultMiddleware() {
+	app.Fiber.Use(
+		cors.New(),
+		logger.New(),
+	)
 }

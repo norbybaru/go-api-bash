@@ -20,7 +20,7 @@ func RegisterRoutes(fiber *fiber.App, db *database.DB) {
 	jwtMiddleware := middleware.JWTMiddleware(config.JWT.Secret, config.JWT.ContextKey)
 
 	group := router.Group("/v1/dishes", jwtMiddleware)
-	group.Get("/", c.Browse).Name("dish.index")
+	group.Get("/", middleware.RateLimiter(), c.Browse).Name("dish.index")
 	group.Get("/:id", c.Read).Name("dish.show")
 	group.Put("/:id", c.Edit).Name("dish.update")
 	group.Post("/", c.Add).Name("dish.store")
