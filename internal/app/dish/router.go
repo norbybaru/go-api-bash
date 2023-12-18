@@ -9,13 +9,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func RegisterRoutes(fiber *fiber.App, db *database.DB) {
+func RegisterApiRoutes(router fiber.Router, db *database.DB) {
 	c := NewController(
 		NewDishService(NewDishRepository(db)),
 		rating.NewService(rating.NewRepository(db)),
 	)
-
-	router := fiber.Group("/api")
 
 	jwtMiddleware := middleware.JWTMiddleware(config.JWT.Secret, config.JWT.ContextKey)
 

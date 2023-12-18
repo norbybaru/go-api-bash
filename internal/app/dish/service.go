@@ -54,8 +54,7 @@ func (s *dishService) ViewDish(ctx context.Context, id int) (*Dish, error) {
 	dish, err := s.repo.GetById(ctx, id)
 
 	if err != nil {
-		log.Error(err)
-		return nil, errorInvalidDish
+		return nil, err
 	}
 
 	return dish, nil
