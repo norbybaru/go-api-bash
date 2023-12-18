@@ -106,8 +106,12 @@ func (s *authService) Login(ctx context.Context, input LoginRequest) (*jwt.Token
 
 	jwt := jwt.Init(config.JWT.Secret, config.JWT.ExpireMinutes)
 
-	fmt.Printf("%+v", user)
-	token, err := jwt.GenerateNewTokens(user.Id)
+	var claimsData = make(map[string]interface{})
+	claimsData["nickname"] = user.Nickname
+	claimsData["email"] = user.Email
+	claimsData["name"] = user.Name
+
+	token, err := jwt.GenerateNewTokens(user.Id, claimsData)
 
 	if err != nil {
 		log.Error(err)

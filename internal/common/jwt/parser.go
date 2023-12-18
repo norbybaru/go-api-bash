@@ -2,6 +2,7 @@ package jwt
 
 import (
 	"dancing-pony/internal/platform/config"
+	"fmt"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -11,6 +12,9 @@ import (
 type TokenMetadata struct {
 	Identifier interface{}
 	Expires    int64
+	Email      string
+	NickName   string
+	Name       string
 }
 
 func (t *TokenMetadata) GetIdentifier() int {
@@ -27,12 +31,17 @@ func ExtractTokenMetadata(c *fiber.Ctx) (*TokenMetadata, error) {
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if ok && token.Valid {
 		identifier := claims["id"]
-
+		email := fmt.Sprint(claims["email"])
+		nickname := fmt.Sprint(claims["nickname"])
+		name := fmt.Sprint(claims["name"])
 		expires := int64(claims["expires"].(float64))
 
 		return &TokenMetadata{
 			Identifier: identifier,
 			Expires:    expires,
+			Email:      email,
+			NickName:   nickname,
+			Name:       name,
 		}, nil
 	}
 

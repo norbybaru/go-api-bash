@@ -13,6 +13,6 @@ func RegisterApiRoutes(router fiber.Router, db *database.DB) {
 
 	jwtMiddleware := middleware.JWTMiddleware(config.JWT.Secret, config.JWT.ContextKey)
 
-	group := router.Group("/v1/ratings", jwtMiddleware)
+	group := router.Group("/v1/ratings", jwtMiddleware, RestrictUser)
 	group.Post("/", c.AddRating).Name("rating.store")
 }

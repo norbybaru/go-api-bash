@@ -29,9 +29,9 @@ func Init(secret string, expiryMinutes int) *jsonWebToken {
 }
 
 // Generate a new Access & Refresh tokens.
-func (j *jsonWebToken) GenerateNewTokens(identifier interface{}) (*Tokens, error) {
+func (j *jsonWebToken) GenerateNewTokens(identifier interface{}, claimsData map[string]interface{}) (*Tokens, error) {
 	// Generate JWT Access token.
-	accessToken, err := j.generateNewAccessToken(identifier)
+	accessToken, err := j.generateNewAccessToken(identifier, claimsData)
 	if err != nil {
 		// Return token generation error.
 		return nil, err
@@ -52,7 +52,7 @@ func (j *jsonWebToken) GenerateNewTokens(identifier interface{}) (*Tokens, error
 	}, nil
 }
 
-func (j *jsonWebToken) generateNewAccessToken(identifier interface{}) (string, error) {
+func (j *jsonWebToken) generateNewAccessToken(identifier interface{}, claimsData map[string]interface{}) (string, error) {
 	// Set secret key from .env file.
 	secret := j.Secret
 	// Create a new claims.
@@ -61,6 +61,10 @@ func (j *jsonWebToken) generateNewAccessToken(identifier interface{}) (string, e
 	// Set public claims:
 	claims["id"] = identifier
 	claims["expires"] = j.Expiry.Unix()
+
+	for k, v := range claimsData {
+		claims[k] = v
+	}
 
 	// Create a new JWT access token with claims.
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
