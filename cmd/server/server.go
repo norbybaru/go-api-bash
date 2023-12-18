@@ -10,8 +10,6 @@ import (
 	"dancing-pony/internal/platform/session"
 	"database/sql"
 	"errors"
-	"log"
-	"os"
 
 	_ "dancing-pony/docs"
 	"github.com/gofiber/fiber/v2"
@@ -27,8 +25,7 @@ type App struct {
 	Session session.Storage
 }
 
-var Application *App
-
+// Instantiate new application
 func NewApp() *App {
 	config.BootstrapConfig()
 	fiber := fiber.New(fiber.Config{
@@ -52,9 +49,11 @@ func (app *App) Start() {
 
 	RunDbMigrations()
 
-	PORT := os.Getenv("PORT")
-
-	log.Fatal(app.Fiber.Listen(":" + PORT))
+	if config.App.Env == "local" {
+		StartServer(app.Fiber)
+	} else {
+		StartServerWithGracefulShutdown(app.Fiber)
+	}
 }
 
 // Register application routes
@@ -90,10 +89,12 @@ func (app *App) registerDefaultRoutes() {
 	}))
 }
 
+// Run Database migration on application start
 func RunDbMigrations() {
 	migration.RunMigrations(config.Database.Source)
 }
 
+// Load application default middleware
 func (app *App) LoadDefaultMiddleware() {
 	app.Fiber.Use(
 		cors.New(),
@@ -102,6 +103,7 @@ func (app *App) LoadDefaultMiddleware() {
 	)
 }
 
+// Global error handler
 func fiberErrorHandler(c *fiber.Ctx, err error) error {
 	// Status code defaults to 500
 	code := fiber.StatusInternalServerError
