@@ -3,6 +3,7 @@ package server
 import (
 	"dancing-pony/internal/app/auth"
 	"dancing-pony/internal/app/dish"
+	"dancing-pony/internal/app/rating"
 	"dancing-pony/internal/platform/config"
 	"dancing-pony/internal/platform/database"
 	"dancing-pony/internal/platform/migration"
@@ -50,6 +51,7 @@ func (app *App) Start() {
 func (app *App) registerDomainRoutes() {
 	auth.RegisterRoutes(app.Fiber, app.Store, app.Session)
 	dish.RegisterRoutes(app.Fiber, app.Store)
+	rating.RegisterRoutes(app.Fiber, app.Store)
 }
 
 // Register default public routes

@@ -1,6 +1,7 @@
 package dish
 
 import (
+	"dancing-pony/internal/app/rating"
 	"dancing-pony/internal/platform/config"
 	"dancing-pony/internal/platform/database"
 	"dancing-pony/internal/platform/middleware"
@@ -9,7 +10,10 @@ import (
 )
 
 func RegisterRoutes(fiber *fiber.App, db *database.DB) {
-	c := NewController(NewDishService(NewDishRepository(db)))
+	c := NewController(
+		NewDishService(NewDishRepository(db)),
+		rating.NewService(rating.NewRepository(db)),
+	)
 
 	router := fiber.Group("/api")
 

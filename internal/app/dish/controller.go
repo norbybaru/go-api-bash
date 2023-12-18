@@ -1,6 +1,7 @@
 package dish
 
 import (
+	"dancing-pony/internal/app/rating"
 	"dancing-pony/internal/common/jwt"
 	"dancing-pony/internal/common/utils"
 	"dancing-pony/internal/platform/paginator"
@@ -12,11 +13,12 @@ import (
 )
 
 type dishController struct {
-	service Service
+	service       Service
+	ratingService rating.Service
 }
 
-func NewController(service Service) *dishController {
-	return &dishController{service}
+func NewController(service Service, ratingService rating.Service) *dishController {
+	return &dishController{service, ratingService}
 }
 
 // Show all dishes resource handler
@@ -64,9 +66,30 @@ func (r *dishController) Read(c *fiber.Ctx) error {
 		})
 	}
 
+	ratings, err := r.ratingService.FindDishRating(c.Context(), dish.Id)
+
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"error":   err.Error(),
+		})
+	}
+
+	var ratingSlice = []RatingResource{}
+	for _, v := range *ratings {
+
+		data := RatingResource{
+			UserId: v.UserId,
+			Rating: int(v.Rate),
+		}
+
+		ratingSlice = append(ratingSlice, data)
+	}
+
+	dishResource := DishResourceResponse{Dish: *dish, Ratings: ratingSlice}
 	return c.JSON(fiber.Map{
 		"success": true,
-		"data":    dish,
+		"data":    dishResource,
 	})
 }
 

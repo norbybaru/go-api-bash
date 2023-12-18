@@ -13,6 +13,10 @@ type TokenMetadata struct {
 	Expires    int64
 }
 
+func (t *TokenMetadata) GetIdentifier() int {
+	return int(t.Identifier.(float64))
+}
+
 func ExtractTokenMetadata(c *fiber.Ctx) (*TokenMetadata, error) {
 	token, err := verifyToken(c)
 
