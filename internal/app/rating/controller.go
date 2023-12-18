@@ -11,10 +11,24 @@ type ratingController struct {
 	service Service
 }
 
+// Instantiate Rating controller
 func NewController(service Service) *ratingController {
 	return &ratingController{service}
 }
 
+// @Description Add a dish rating by user.
+// @Summary create a new dish rating
+// @Tags Rating
+// @Accept json
+// @Produce json
+// @Param request body CreateRatingRequest  true "query params"
+// @Success 204 {} status "No Content"
+// @Success 400 {object} response.ErrorResponse{}
+// @Success 401  {object} response.UnauthenticatedResponse{}
+// @Success 422 {object} validator.ValidationErrorResponse{}
+// @Success 500 {object} response.ErrorResponse{}
+// @Security ApiKeyAuth
+// @Router /v1/ratings [post]
 func (r *ratingController) AddRating(c *fiber.Ctx) error {
 	var request CreateRatingRequest
 

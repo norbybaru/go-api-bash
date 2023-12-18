@@ -2,6 +2,7 @@ package dish
 
 import (
 	"context"
+	"dancing-pony/internal/platform/paginator"
 	"database/sql"
 	"errors"
 
@@ -11,7 +12,7 @@ import (
 // Service encapsulates business logic for Dishes.
 type Service interface {
 	// List all dishes and paginate through all
-	ListDishes(ctx context.Context, page int, limit int) (*PaginatorResult, error)
+	ListDishes(ctx context.Context, page int, limit int) (*paginator.PaginatorResult, error)
 	// View a single dish
 	ViewDish(ctx context.Context, id int) (*Dish, error)
 	// Update a single dish
@@ -39,7 +40,7 @@ var (
 	ErrorResourceNotFound      = errors.New("Resource not found")
 )
 
-func (s *dishService) ListDishes(ctx context.Context, page int, limit int) (*PaginatorResult, error) {
+func (s *dishService) ListDishes(ctx context.Context, page int, limit int) (*paginator.PaginatorResult, error) {
 	paginatorResult, err := s.repo.Paginate(ctx, page, limit)
 
 	if err != nil {
@@ -54,7 +55,12 @@ func (s *dishService) ViewDish(ctx context.Context, id int) (*Dish, error) {
 	dish, err := s.repo.GetById(ctx, id)
 
 	if err != nil {
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, ErrorResourceNotFound
+		}
+
+		log.Error(err)
+		return nil, errorBrowseDishes
 	}
 
 	return dish, nil
@@ -79,14 +85,14 @@ func (s *dishService) UpdateDish(ctx context.Context, input UpdateDishRequest, i
 
 	updatedDish := NewDish(input.Name, input.Description, input.ImageUrl, input.Price, input.UserId)
 
-	existingDish, err := s.repo.GetBySlug(ctx, dish.Slug)
+	newSlugDishExist, err := s.repo.GetBySlug(ctx, updatedDish.Slug)
 
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		log.Error(err)
-		return nil, errorCreateDish
+		return nil, errorUpdateDish
 	}
 
-	if existingDish != nil && existingDish.Slug == updatedDish.Slug {
+	if newSlugDishExist.Id != 0 && newSlugDishExist.Id != dish.Id {
 		return nil, ValidationNameAlreadyExist
 	}
 

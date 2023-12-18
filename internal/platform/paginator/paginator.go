@@ -16,13 +16,26 @@ var (
 	PerPageVar = "limit"
 )
 
+type PaginatorResult struct {
+	Paginator *Paginator
+	Records   interface{}
+}
+
 type Paginator struct {
-	NextPage     int `json:"next_page,omitempty"`
-	PreviousPage int `json:"prev_page,omitempty"`
-	PerPage      int `json:"per_page,omitempty"`
-	CurrentPage  int `json:"current_page,omitempty"`
-	TotalPages   int `json:"to,omitempty"`
-	TotalRecords int `json:"total,omitempty"`
+	NextPage     int `json:"next_page,omitempty" example:"4"`
+	PreviousPage int `json:"prev_page,omitempty" example:"2"`
+	PerPage      int `json:"per_page,omitempty" example:"15"`
+	CurrentPage  int `json:"current_page,omitempty" example:"3"`
+	TotalPages   int `json:"to,omitempty" example:"20"`
+	TotalRecords int `json:"total,omitempty" example:"50"`
+}
+
+// Object struct for pagination links
+type PageLink struct {
+	First    string `json:"first,omitempty" example:"http://127.0.0.1:8080/api/v1/dishes?page=3"`
+	Next     string `json:"next,omitempty" example:"http://127.0.0.1:8080/api/v1/dishes?page=4"`
+	Last     string `json:"last,omitempty" example:"http://127.0.0.1:8080/api/v1/dishes?page=5"`
+	Previous string `json:"prev,omitempty" example:"http://127.0.0.1:8080/api/v1/dishes?page=2"`
 }
 
 func (p *Paginator) Offset() int {
@@ -75,13 +88,6 @@ func NewPaginator(currentPage int, perPage int, totalRecords int) *Paginator {
 	}
 
 	return &paginator
-}
-
-type PageLink struct {
-	First    string `json:"first,omitempty"`
-	Next     string `json:"next,omitempty"`
-	Last     string `json:"last,omitempty"`
-	Previous string `json:"prev,omitempty"`
 }
 
 // Build pagination links: first, prev, next, and last links corresponding to the pagination.

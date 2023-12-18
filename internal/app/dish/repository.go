@@ -21,7 +21,7 @@ type Repository interface {
 	// Count returns the number of dishes.
 	Count(ctx context.Context) (int, error)
 	// Query returns the list of dishes with the given offset and limit.
-	Paginate(ctx context.Context, page int, limit int) (*PaginatorResult, error)
+	Paginate(ctx context.Context, page int, limit int) (*paginator.PaginatorResult, error)
 	// Create saves a new dish in the storage.
 	Create(ctx context.Context, dish Dish) error
 	// Update updates the dish with given ID in the storage.
@@ -68,12 +68,12 @@ func (r *dishRepository) Count(ctx context.Context) (int, error) {
 	return count, err
 }
 
-type PaginatorResult struct {
-	Paginator *paginator.Paginator
-	Records   *[]Dish
-}
+// type PaginatorResult struct {
+// 	Paginator *paginator.Paginator
+// 	Records   *[]Dish
+// }
 
-func (r *dishRepository) Paginate(ctx context.Context, page int, limit int) (*PaginatorResult, error) {
+func (r *dishRepository) Paginate(ctx context.Context, page int, limit int) (*paginator.PaginatorResult, error) {
 	var rowCount int
 	queryBuilder := r.db.With(ctx).
 		Select("COUNT(*)").
@@ -86,22 +86,22 @@ func (r *dishRepository) Paginate(ctx context.Context, page int, limit int) (*Pa
 		return nil, err
 	}
 
-	paginator := paginator.NewPaginator(page, limit, rowCount)
+	pagination := paginator.NewPaginator(page, limit, rowCount)
 
 	var dishes *[]Dish
 	err = queryBuilder.
 		Select().
 		OrderBy("id DESC").
-		Offset(int64(paginator.Offset())).
-		Limit(int64(paginator.Limit())).
+		Offset(int64(pagination.Offset())).
+		Limit(int64(pagination.Limit())).
 		All(&dishes)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &PaginatorResult{
-		Paginator: paginator,
+	return &paginator.PaginatorResult{
+		Paginator: pagination,
 		Records:   dishes,
 	}, nil
 }

@@ -10,8 +10,8 @@ import (
 )
 
 type Tokens struct {
-	Type    string `json:"token_type"`
-	Expiry  int64  `json:"expires_in"`
+	Type    string `json:"token_type" example:"Bearer"`
+	Expiry  int64  `json:"expires_in" example:"1223567654"`
 	Access  string `json:"access_token"`
 	Refresh string `json:"refresh_token"`
 }

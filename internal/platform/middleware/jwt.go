@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"dancing-pony/internal/common/jwt"
+	"dancing-pony/internal/common/response"
 
 	jwtMiddleware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
@@ -19,16 +19,14 @@ func JWTMiddleware(secret string, contextKey string) fiber.Handler {
 
 func jwtError(c *fiber.Ctx, err error) error {
 	// Return status 401 and failed authentication error.
-	if err.Error() == "Missing or malformed JWT" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"success": false,
-			"error":   jwt.ErrorUnAuthenticated,
-		})
+	if err.Error() == "missing or malformed JWT" {
+		return c.
+			Status(fiber.StatusUnauthorized).
+			JSON(response.NewUnauthenticatedResponse())
 	}
 
 	// Return status 401 and failed authentication error.
-	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-		"success": false,
-		"error":   err.Error(),
-	})
+	return c.
+		Status(fiber.StatusUnauthorized).
+		JSON(response.NewUnauthenticatedResponse())
 }

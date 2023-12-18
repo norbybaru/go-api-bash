@@ -9,7 +9,7 @@ type CreateDishRequest struct {
 }
 
 type UpdateDishRequest struct {
-	UserId      int
+	UserId      int    `json:"-"`
 	Id          string `json:"id" validate:"required"`
 	Name        string `json:"name" validate:"required,lte=255"`
 	Description string `json:"description" validate:"required"`

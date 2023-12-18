@@ -1,0 +1,594 @@
+basePath: /api
+definitions:
+  auth.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        maxLength: 255
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  auth.RegisterRequest:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+      name:
+        maxLength: 255
+        type: string
+      nickname:
+        maxLength: 255
+        type: string
+      password:
+        maxLength: 255
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  auth.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      nickname:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dish.CreateDishRequest:
+    properties:
+      description:
+        type: string
+      image_url:
+        maxLength: 300
+        type: string
+      name:
+        maxLength: 255
+        type: string
+      price:
+        type: integer
+    required:
+    - description
+    - image_url
+    - name
+    - price
+    type: object
+  dish.Dish:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      image_url:
+        type: string
+      name:
+        type: string
+      price:
+        type: integer
+      slug:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dish.DishResourceResponse:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      image_url:
+        type: string
+      name:
+        type: string
+      price:
+        type: integer
+      ratings:
+        items:
+          $ref: '#/definitions/dish.RatingResource'
+        type: array
+      slug:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dish.RatingResource:
+    properties:
+      rating:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  dish.UpdateDishRequest:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      image_url:
+        type: string
+      name:
+        maxLength: 255
+        type: string
+      price:
+        type: integer
+    required:
+    - description
+    - id
+    - image_url
+    - name
+    - price
+    type: object
+  jwt.Tokens:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        example: 1223567654
+        type: integer
+      refresh_token:
+        type: string
+      token_type:
+        example: Bearer
+        type: string
+    type: object
+  paginator.PageLink:
+    properties:
+      first:
+        example: http://127.0.0.1:8080/api/v1/dishes?page=3
+        type: string
+      last:
+        example: http://127.0.0.1:8080/api/v1/dishes?page=5
+        type: string
+      next:
+        example: http://127.0.0.1:8080/api/v1/dishes?page=4
+        type: string
+      prev:
+        example: http://127.0.0.1:8080/api/v1/dishes?page=2
+        type: string
+    type: object
+  paginator.Paginator:
+    properties:
+      current_page:
+        example: 3
+        type: integer
+      next_page:
+        example: 4
+        type: integer
+      per_page:
+        example: 15
+        type: integer
+      prev_page:
+        example: 2
+        type: integer
+      to:
+        example: 20
+        type: integer
+      total:
+        example: 50
+        type: integer
+    type: object
+  rating.CreateRatingRequest:
+    properties:
+      dish_id:
+        type: integer
+      rate:
+        maximum: 10
+        minimum: 1
+        type: integer
+    required:
+    - dish_id
+    - rate
+    type: object
+  response.ErrorResponse:
+    properties:
+      error:
+        example: Failed to process request
+        type: string
+      success:
+        example: false
+        type: boolean
+    type: object
+  response.JsonResponse:
+    properties:
+      data: {}
+      success:
+        type: boolean
+    type: object
+  response.PaginatedResponse:
+    properties:
+      data: {}
+      links: {}
+      meta: {}
+      success:
+        type: boolean
+    type: object
+  response.UnauthenticatedResponse:
+    properties:
+      error:
+        example: Unauthenticated
+        type: string
+      success:
+        example: false
+        type: boolean
+    type: object
+  validator.ValidationErrorResponse:
+    properties:
+      error:
+        example: Failed validation
+        type: string
+      errors:
+        additionalProperties:
+          type: string
+        type: object
+      success:
+        example: false
+        type: boolean
+    type: object
+info:
+  contact:
+    email: norbybaru@gmail.com
+    name: API Support
+  description: This is a pai documentation nof how to interact with this service
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  version: "1.0"
+paths:
+  /v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return access and refresh token.
+      parameters:
+      - description: query params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JsonResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/jwt.Tokens'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/validator.ValidationErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: auth user and return access and refresh token
+      tags:
+      - Auth
+  /v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user.
+      parameters:
+      - description: query params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JsonResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/auth.User'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/validator.ValidationErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: create a new user
+      tags:
+      - Auth
+  /v1/dishes:
+    get:
+      consumes:
+      - application/json
+      description: Get all dishes and browse through them.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.PaginatedResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dish.Dish'
+                  type: array
+                links:
+                  $ref: '#/definitions/paginator.PageLink'
+                meta:
+                  $ref: '#/definitions/paginator.Paginator'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.UnauthenticatedResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/validator.ValidationErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: get all dishes
+      tags:
+      - Dishes
+    post:
+      consumes:
+      - application/json
+      description: Create a new dish.
+      parameters:
+      - description: query params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dish.CreateDishRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JsonResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dish.Dish'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.UnauthenticatedResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/validator.ValidationErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: create a new dish
+      tags:
+      - Dishes
+  /v1/dishes/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete dish by given ID.
+      parameters:
+      - description: Dish ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.UnauthenticatedResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/validator.ValidationErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: delete book by given ID
+      tags:
+      - Dishes
+    get:
+      consumes:
+      - application/json
+      description: View a single dish by ID
+      parameters:
+      - description: Dish ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JsonResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dish.DishResourceResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.UnauthenticatedResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/validator.ValidationErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: get dish by a given ID
+      tags:
+      - Dishes
+    put:
+      consumes:
+      - application/json
+      description: Update an existing dish by given ID
+      parameters:
+      - description: query params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dish.UpdateDishRequest'
+      - description: Dish ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JsonResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dish.Dish'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.UnauthenticatedResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/validator.ValidationErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: update dish by ID
+      tags:
+      - Dishes
+  /v1/ratings:
+    post:
+      consumes:
+      - application/json
+      description: Add a dish rating by user.
+      parameters:
+      - description: query params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/rating.CreateRatingRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.UnauthenticatedResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/validator.ValidationErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: create a new dish rating
+      tags:
+      - Rating
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

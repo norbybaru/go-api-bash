@@ -23,7 +23,21 @@ type ErrorResponse struct {
 type ValidationMessage struct {
 	Error   bool
 	Message string
-	Errors  map[string]interface{}
+	Errors  map[string]string
+}
+
+func (v *ValidationMessage) NewValidationErrorResponse() *ValidationErrorResponse {
+	return &ValidationErrorResponse{
+		Success: false,
+		Error:   v.Message,
+		Errors:  v.Errors,
+	}
+}
+
+type ValidationErrorResponse struct {
+	Success bool   `json:"success" example:"false"`
+	Error   string `json:"error" example:"Failed validation"`
+	Errors  map[string]string
 }
 
 type Validator struct {
@@ -65,7 +79,7 @@ func (v *Validator) errors(err []ErrorResponse) ValidationMessage {
 		Message: "Failed validation",
 	}
 
-	msg.Errors = make(map[string]interface{})
+	msg.Errors = make(map[string]string)
 
 	// Make error message for each invalid field.
 	for _, err := range err {
@@ -78,11 +92,7 @@ func (v *Validator) errors(err []ErrorResponse) ValidationMessage {
 // Return http Json response
 func (v *Validator) JsonResponse(ctx *fiber.Ctx, err []ErrorResponse) error {
 	validation := v.errors(err)
-	return ctx.Status(fiber.StatusUnprocessableEntity).JSON(&fiber.Map{
-		"success": false,
-		"error":   validation.Message,
-		"errors":  validation.Errors,
-	})
+	return ctx.Status(fiber.StatusUnprocessableEntity).JSON(validation.NewValidationErrorResponse())
 }
 
 // Build validation error message

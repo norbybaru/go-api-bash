@@ -2,6 +2,7 @@ package auth
 
 import "time"
 
+// User model info
 type User struct {
 	Id        int       `json:"id" db:"id"`
 	Name      string    `json:"name" db:"name"`

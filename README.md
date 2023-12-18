@@ -44,6 +44,8 @@ At this time, you have a RESTful API server running at `http://127.0.0.1:8080`. 
 
 Try the URL `http://localhost:8080/` in a browser, and you should see something like `"OK"` displayed.
 
+To read through API docs visit page `http://localhost:8080/docs/` in your browser.
+
 If you have `cURL` or some API client tools (e.g. [Postman](https://www.getpostman.com/)), you may try the following
 more complex scenarios:
 
