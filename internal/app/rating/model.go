@@ -15,12 +15,9 @@ type Rating struct {
 }
 
 func NewRating(userId int, dishId int, rate uint8) *Rating {
-	now := time.Now().UTC()
 	return &Rating{
-		UserId:    userId,
-		DishId:    dishId,
-		Rate:      rate,
-		CreatedAt: now,
-		UpdatedAt: now,
+		UserId: userId,
+		DishId: dishId,
+		Rate:   rate,
 	}
 }

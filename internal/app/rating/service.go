@@ -19,6 +19,7 @@ type ratingService struct {
 
 var (
 	errorFailedProcessRequest = errors.New("Failed to process request")
+	errorResourceNotFound     = errors.New("Resource not found")
 	validationRatingExist     = errors.New("Rating already exist")
 )
 
@@ -42,7 +43,12 @@ func (s *ratingService) FindDishRating(ctx context.Context, dishId int) (*[]Rati
 func (s *ratingService) AddRating(ctx context.Context, input CreateRatingRequest) error {
 	rating, err := s.repo.FindUserDishRating(ctx, input.UserId, input.DishId)
 
-	if err != nil && err != sql.ErrNoRows {
+	if err != nil {
+
+		if err == sql.ErrNoRows {
+			return errorResourceNotFound
+		}
+
 		log.Error(err)
 		return err
 	}
